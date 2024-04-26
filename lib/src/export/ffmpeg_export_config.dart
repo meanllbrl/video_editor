@@ -226,14 +226,50 @@ class CoverFFmpegVideoEditorConfig extends FFmpegVideoEditorConfig {
   /// Generate this selected cover image as a JPEG [File]
   ///
   /// If this controller's [selectedCoverVal] is `null`, then it return the first frame of this video.
-  Future<String?> _generateCoverFile() async => VideoThumbnail.thumbnailFile(
-        imageFormat: ImageFormat.JPEG,
-        thumbnailPath: (await getTemporaryDirectory()).path,
-        video: controller.file.path,
-        timeMs: controller.selectedCoverVal?.timeMs ??
-            controller.startTrim.inMilliseconds,
-        quality: quality,
-      );
+  Future<String?> _generateCoverFile() async =>
+      controller.customThumbnailBuilder != null
+          ? generatedThumbnailAsFile()
+          : VideoThumbnail.thumbnailFile(
+              imageFormat: ImageFormat.JPEG,
+              thumbnailPath: (await getTemporaryDirectory()).path,
+              video: controller.file.path,
+              timeMs: controller.selectedCoverVal?.timeMs ??
+                  controller.startTrim.inMilliseconds,
+              quality: quality,
+            );
+
+  Future<String?> generatedThumbnailAsFile() async {
+    // Get the path of the temporary directory
+    String path = (await getTemporaryDirectory()).path;
+
+    // Use your customThumbnailBuilder function to get the Uint8List data
+    Uint8List? value = await controller.customThumbnailBuilder!(
+        path,
+        controller.selectedCoverVal?.timeMs ??
+            controller.startTrim.inMilliseconds);
+
+    // Check if the value is not null
+    if (value != null) {
+      // Filename for the thumbnail
+      String filename = 'thumbnail.jpg';
+
+      // Full path for the new file
+      String filePath = '$path/$filename';
+
+      // Create a File from the filePath
+      File file = File(filePath);
+
+      // Write the Uint8List data to the file and return the file
+      await file.writeAsBytes(value);
+      return file.path;
+    } else {
+       if (kDebugMode) {
+         print('Failed to generate thumbnail');
+       }
+      // Handle the scenario when thumbnail data is null
+      return null;
+    }
+  }
 
   /// Returns a [FFmpegVideoEditorExecute] command to be executed with FFmpeg to export
   /// the cover image applying the editing parameters.

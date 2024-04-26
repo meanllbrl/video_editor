@@ -15,12 +15,14 @@ Stream<List<Uint8List>> generateTrimThumbnails(
 
   for (int i = 1; i <= quantity; i++) {
     try {
-      final Uint8List? bytes = await VideoThumbnail.thumbnailData(
-        imageFormat: ImageFormat.JPEG,
-        video: path,
-        timeMs: (eachPart * i).toInt(),
-        quality: controller.trimThumbnailsQuality,
-      );
+      final Uint8List? bytes = await (controller.customThumbnailBuilder != null
+          ? controller.customThumbnailBuilder!(path, (eachPart * i).toInt())
+          : VideoThumbnail.thumbnailData(
+              imageFormat: ImageFormat.JPEG,
+              video: path,
+              timeMs: (eachPart * i).toInt(),
+              quality: controller.trimThumbnailsQuality,
+            ));
       if (bytes != null) {
         byteList.add(bytes);
       }
@@ -50,7 +52,7 @@ Stream<List<CoverData>> generateCoverThumbnails(
                 ? (eachPart * i) + controller.startTrim.inMilliseconds
                 : (eachPart * i))
             .toInt(),
-        quality: controller.coverThumbnailsQuality,
+        quality: controller.coverThumbnailsQuality, customThumbnailBuilder: controller.customThumbnailBuilder,
       );
 
       if (bytes.thumbData != null) {
@@ -67,17 +69,19 @@ Stream<List<CoverData>> generateCoverThumbnails(
 /// Generate a cover at [timeMs] in video
 ///
 /// Returns a [CoverData] depending on [timeMs] milliseconds
-Future<CoverData> generateSingleCoverThumbnail(
-  String filePath, {
-  int timeMs = 0,
-  int quality = 10,
-}) async {
-  final Uint8List? thumbData = await VideoThumbnail.thumbnailData(
+Future<CoverData> generateSingleCoverThumbnail(String filePath,
+    {int timeMs = 0,
+    int quality = 10,
+  required Future<Uint8List?> Function(String videoPath, int timeMs)?
+      customThumbnailBuilder}) async {
+  final Uint8List? thumbData = await (customThumbnailBuilder != null
+          ? customThumbnailBuilder(filePath, timeMs)
+          :  VideoThumbnail.thumbnailData(
     imageFormat: ImageFormat.JPEG,
     video: filePath,
     timeMs: timeMs,
     quality: quality,
-  );
+  ));
 
   return CoverData(thumbData: thumbData, timeMs: timeMs);
 }

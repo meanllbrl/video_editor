@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_editor/src/utils/helpers.dart';
 import 'package:video_editor/src/utils/thumbnails.dart';
@@ -40,6 +41,9 @@ class VideoEditorController extends ChangeNotifier {
   /// Video from [File].
   final File file;
 
+  final Future<Uint8List?> Function(String videoPath, int timeMs)?
+      customThumbnailBuilder;
+
   /// Constructs a [VideoEditorController] that edits a video from a file.
   ///
   /// The [file] argument must not be null.
@@ -49,6 +53,7 @@ class VideoEditorController extends ChangeNotifier {
     this.minDuration = Duration.zero,
     this.coverThumbnailsQuality = 10,
     this.trimThumbnailsQuality = 10,
+    this.customThumbnailBuilder,
     this.coverStyle = const CoverSelectionStyle(),
     this.cropStyle = const CropGridStyle(),
     TrimSliderStyle? trimStyle,
@@ -387,7 +392,7 @@ class VideoEditorController extends ChangeNotifier {
     final defaultCover = await generateSingleCoverThumbnail(
       file.path,
       timeMs: startTrim.inMilliseconds,
-      quality: coverThumbnailsQuality,
+      quality: coverThumbnailsQuality, customThumbnailBuilder: customThumbnailBuilder,
     );
     updateSelectedCover(defaultCover);
   }

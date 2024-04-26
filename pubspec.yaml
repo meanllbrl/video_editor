@@ -19,6 +19,7 @@ dependencies:
   transparent_image: ^2.0.1 # show fade-in placeholder in thumbnails generation
   video_player: ^2.6.1
   video_thumbnail: ^0.5.3
+  
 
 dev_dependencies:
   flutter_test:

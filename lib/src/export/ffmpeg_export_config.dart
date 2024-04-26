@@ -244,7 +244,7 @@ class CoverFFmpegVideoEditorConfig extends FFmpegVideoEditorConfig {
 
     // Use your customThumbnailBuilder function to get the Uint8List data
     Uint8List? value = await controller.customThumbnailBuilder!(
-        path,
+        controller.file.path,
         controller.selectedCoverVal?.timeMs ??
             controller.startTrim.inMilliseconds);
 
